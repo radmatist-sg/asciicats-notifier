@@ -4,3 +4,8 @@ config.txt
 # local tooling, not part of the repo
 gh
 gh.zip
+
+# Cloudflare worker
+cf-worker/node_modules/
+cf-worker/.webhook_secret
+cf-worker/seed-state.json

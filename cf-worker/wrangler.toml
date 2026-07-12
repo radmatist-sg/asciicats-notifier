@@ -1,0 +1,12 @@
+name = "mint-watcher"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# runs the mint check every minute
+[triggers]
+crons = ["* * * * *"]
+
+# KV namespace for state (id is filled in during deploy)
+[[kv_namespaces]]
+binding = "STATE"
+id = "6c32d9afb60546069fd418b88fe1561f"
