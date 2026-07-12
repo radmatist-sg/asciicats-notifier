@@ -1,1 +1,0 @@
-{"targets":[{"name":"ASCII Cats","rpc":"https://rpc.mainnet.chain.robinhood.com","chain":"robinhood","contract":"0xa3F56AdB32D3A8F3b41462e3fBF17f36829325bE","site":"https://asciicats.xyz/mint","max_supply":"3333","baseline_supply":"1","alerted_open":false,"sold_out":false,"last_notified_count":"1"}],"pending":null}

@@ -9,3 +9,4 @@ gh.zip
 cf-worker/node_modules/
 cf-worker/.webhook_secret
 cf-worker/seed-state.json
+cf-worker/.wrangler/
