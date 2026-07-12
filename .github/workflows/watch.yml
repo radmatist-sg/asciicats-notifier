@@ -19,18 +19,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check mint status
+      - name: Check mints + handle commands
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python3 check.py
+        run: python3 bot.py
 
       - name: Save state
         run: |
-          if ! git diff --quiet state.json; then
-            git config user.name "asciicats-bot"
+          if ! git diff --quiet targets.json; then
+            git config user.name "mint-watcher-bot"
             git config user.email "actions@github.com"
-            git add state.json
+            git add targets.json
             git commit -m "update mint state [skip ci]"
             git push
           else
