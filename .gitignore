@@ -1,0 +1,6 @@
+# NEVER upload the token — it lives in GitHub Secrets instead
+config.txt
+
+# local tooling, not part of the repo
+gh
+gh.zip
