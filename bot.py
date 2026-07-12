@@ -142,6 +142,7 @@ HELP = (
     "    <code>/add Cool Cats 0xabc123... https://coolcats.xyz robinhood</code>\n"
     "    (order doesn't matter; chain defaults to robinhood — also: eth, base)\n"
     "/remove Name — stop watching a mint (e.g. <code>/remove Cool Cats</code>)\n"
+    "/test — send a loud test alert (to check your phone sound)\n"
     "/help — this message\n\n"
     "Tip: for stealth mints, you can also just paste the site to Zul's assistant "
     "and it'll dig out the contract for you."
@@ -258,6 +259,9 @@ def process_commands(state):
             cmd_add(state, arg)
         elif cmd == "remove":
             cmd_remove(state, arg)
+        elif cmd == "test":
+            send("🚨🐱 <b>TEST alert</b> — this is how a MINT OPEN will sound. "
+                 "If it pinged loudly, you're set. 🐱🚨", loud=True)
         elif cmd in ("help", "start"):
             send(HELP)
         else:
