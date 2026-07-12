@@ -1,73 +1,75 @@
-# ASCII Cats Mint Notifier — Setup
+# Mint Watcher — Telegram bot
 
-This little program watches the ASCII Cats NFT on Robinhood Chain and sends
-you a **Telegram message the second the mint opens**, plus a running count of
-how many of the 3333 cats have been minted.
+Watches NFT mints and sends you a **loud Telegram alert the moment one opens**,
+with the mint's website in the message. Everything else (progress, replies) is
+**silent**, so your phone only makes noise when a mint actually goes live.
 
-You only need to do the setup **once**.
+It runs 24/7 in the cloud on GitHub Actions (checks every ~5 minutes) — your
+Mac does **not** need to be on.
 
----
-
-## Step 1 — Make your Telegram bot (2 minutes)
-
-1. Open Telegram, search for **@BotFather**, tap **Start**.
-2. Send: `/newbot`
-3. Give it any name (e.g. `ASCII Cats Watcher`) and a username ending in `bot`
-   (e.g. `zul_asciicats_bot`).
-4. BotFather replies with a **token** that looks like
-   `8123456789:AAH...long-random-string...`
-5. Copy that token.
-
-## Step 2 — Put the token in config.txt
-
-Open `config.txt` (in this same folder) and paste your token after `BOT_TOKEN=`
-so it looks like:
-
-```
-BOT_TOKEN=8123456789:AAH...your-token...
-CHAT_ID=
-```
-
-Leave `CHAT_ID` blank for now — the program fills it in automatically.
-
-## Step 3 — Say hi to your bot
-
-In Telegram, open the bot you just made and tap **Start** (or send it any
-message like "hi"). This is what lets it message you back.
-
-## Step 4 — Run it
-
-Open the Terminal app and paste this, then press Enter:
-
-```
-python3 "/Users/Zul/Desktop/asciicats-notifier/watch.py"
-```
-
-- The first time, it detects your Chat ID and prints a line like
-  `CHAT_ID=123456789`. Paste that line into `config.txt` (replacing the blank
-  `CHAT_ID=`) so you never have to do it again.
-- You'll get a Telegram message: **"👀 ASCII Cats watcher is live."**
-  That means it's working.
-
-Leave that Terminal window open. When the mint opens you'll get a
-**🚨 MINT IS OPEN** message with the mint link.
-
-To stop it, click the Terminal window and press **Ctrl + C**.
+- Repo: https://github.com/radmatist-sg/asciicats-notifier
+- Currently watching: **ASCII Cats** (asciicats.xyz/mint, Robinhood Chain)
 
 ---
 
-## Notes
+## Talk to the bot (in your Telegram chat with it)
 
-- It checks every 20 seconds.
-- **Your Mac must be awake and the Terminal running** for alerts to arrive.
-  If you want it to run in the cloud 24/7 (even with your laptop closed), tell
-  Zul's assistant — that's a small extra step we can add.
-- The mint is **free, 1 cat per wallet**, and gated by an anti-bot check that
-  may ask you to follow/like the @ASCIIcats_ posts on X to get a mint ticket.
-  This notifier just tells you *when* to go — you still mint on the website.
+Send any of these:
 
-## What it's watching (for reference)
+| Command | What it does |
+|---|---|
+| `/list` or `/status` | Show every mint I'm watching + live status |
+| `/add ...` | Add a new mint to watch (see below) |
+| `/remove Name` | Stop watching a mint, e.g. `/remove ASCII Cats` |
+| `/help` | Show the command list |
 
-- NFT contract: `0xa3F56AdB32D3A8F3b41462e3fBF17f36829325bE` (ASCII CATS)
-- Chain: Robinhood Chain (chain id 4663)
-- Mint site: https://asciicats.xyz/mint
+**Replies take up to ~5 minutes** (that's how often the cloud checks in). This
+is normal and doesn't affect the important part — mint-open alerts.
+
+### Adding a mint
+
+Paste an address, a website, and optionally a chain — order doesn't matter:
+
+```
+/add Cool Cats 0x1234...abcd https://coolcats.xyz robinhood
+```
+
+- Chain defaults to **robinhood**. Also supported: **eth**, **base**.
+- The bot reads the contract's supply cap automatically and starts watching.
+- It alerts when minting begins (supply starts rising, or the contract's
+  open/sale flag flips) — works even on stealth contracts.
+
+**For stealth mints where you only have a website**, paste the link to Zul's
+assistant instead — it digs the contract address out of the site for you.
+
+---
+
+## Make the alert LOUD on your phone (one-time, 2 min)
+
+So your phone stays quiet except when a mint opens:
+
+1. Open the bot chat in Telegram → tap its **name at the top**.
+2. **Notifications / Customize** → turn notifications **On** and pick a
+   **distinctive, loud sound** you'll recognise.
+3. (Optional) Mute your other Telegram chats so only this one can ping you.
+4. **iPhone Focus/Do Not Disturb:** Settings → Focus → (your focus) → add
+   **Telegram** to Allowed Apps, so alerts still come through when you're in DND.
+
+Note: a Telegram bot can't override your phone's physical mute switch (only
+Apple's built-in alarms can). If you ever want a true "screaming" alert that
+pierces silent mode, ask Zul's assistant to add **Pushover emergency alerts**.
+
+---
+
+## Turning it off
+
+When you're done watching mints, delete the repo (Settings → Delete this
+repository) or just ask Zul's assistant to do it.
+
+## Files (for reference)
+
+- `bot.py` — the watcher + command handler (runs in the cloud)
+- `targets.json` — the list of mints being watched (auto-updated)
+- `.github/workflows/watch.yml` — the every-5-min schedule
+- `watch.py` — optional local-only version (runs on your Mac, checks every 20s)
+- `config.txt` — your token, kept **only** on your Mac (never uploaded)
