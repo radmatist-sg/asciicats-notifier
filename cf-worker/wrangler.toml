@@ -2,9 +2,13 @@ name = "mint-watcher"
 main = "src/worker.js"
 compatibility_date = "2026-01-01"
 
-# runs the mint check every minute
+# "* * * * *"   -> mint check, every minute
+# "17 2 * * *"  -> Supabase keep-alive, once a day (02:17 UTC = 10:17 SGT).
+#                 Odd minute on purpose: the top of the hour is the busiest
+#                 slot on Cloudflare's cron queue and the likeliest to be
+#                 delayed or dropped.
 [triggers]
-crons = ["* * * * *"]
+crons = ["* * * * *", "17 2 * * *"]
 
 # KV namespace for state (id is filled in during deploy)
 [[kv_namespaces]]

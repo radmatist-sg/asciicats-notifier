@@ -297,6 +297,60 @@ async function checkTargets(env) {
   if (changed) await saveState(env, state);
 }
 
+// ------------------------------------------------------- supabase keep-alive
+// Supabase pauses Free Plan projects after ~7 days of low database activity.
+// The Character Sheet only gets used during workshops, so it pauses on its own
+// between them — and a paused project means the QR code learners scan leads to
+// a dead app, in front of a room. One real query a day prevents that.
+//
+// Each project exposes rq_ping(): no arguments, touches no data, always
+// succeeds. Their other functions all require a code or PIN and would be
+// rejected; a rejected call probably still counts as activity, but a live
+// workshop is a bad thing to bet on "probably".
+//
+// The anon keys are public by design — they identify the project and authorise
+// nothing on their own (both databases gate every table behind RLS). They sit
+// in the page source of both apps already, so there is nothing to protect here
+// and no secret to configure.
+const SUPABASE_PINGS = [
+  {
+    name: "Character Sheet",
+    url: "https://edwnqmolpdxojmlrqhzm.supabase.co",
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkd25xbW9scGR4b2ptbHJxaHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4OTIwODMsImV4cCI6MjA5OTQ2ODA4M30.ZyNQ9oiQBBiFubpNqpIwe3Plxc-XrN6mwy5FqQQ6tQE",
+  },
+  {
+    name: "InvestTrack",
+    url: "https://ecybxggndoqmumxagtoe.supabase.co",
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjeWJ4Z2duZG9xbXVteGFndG9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNDUyMTQsImV4cCI6MjA5NzYyMTIxNH0.-5rGuI-igKgVejRVhOk1D25pOPCzrCz3Q_7GF5doOWA",
+  },
+];
+
+async function pingSupabase(env) {
+  const failures = [];
+  for (const p of SUPABASE_PINGS) {
+    try {
+      const r = await fetch(`${p.url}/rest/v1/rpc/rq_ping`, {
+        method: "POST",
+        headers: {
+          apikey: p.key,
+          Authorization: `Bearer ${p.key}`,
+          "content-type": "application/json",
+        },
+        body: "{}",
+      });
+      if (!r.ok) failures.push(`${p.name}: HTTP ${r.status} ${(await r.text()).slice(0, 120)}`);
+    } catch (e) {
+      failures.push(`${p.name}: ${e.message}`);
+    }
+  }
+  // A keep-alive that fails silently is worse than none at all — it looks like
+  // cover while the project pauses anyway. Say so, loudly, on the same channel
+  // the mint alerts use.
+  if (failures.length) {
+    await send(env, `⚠️ <b>Supabase keep-alive failed</b>\n\n${failures.join("\n")}\n\nThe project may pause after ~7 days of this.`, true);
+  }
+}
+
 // ---------------------------------------------------------------- entrypoints
 export default {
   async fetch(request, env) {
@@ -318,7 +372,11 @@ export default {
     return new Response("ok", { status: 200 });
   },
 
+  // Two crons share this handler — branch on which one fired, so the daily
+  // Supabase ping never runs on the every-minute mint check (that would be
+  // ~1400 needless requests a day) and a slow ping can never delay a mint alert.
   async scheduled(event, env) {
+    if (event.cron === "17 2 * * *") { await pingSupabase(env); return; }
     await checkTargets(env);
   },
 };
